@@ -1,14 +1,11 @@
-import os  # noqa: D100
+"""Module for get questions and answers from text files."""
+
+import os
 from pathlib import Path
 
 
 def scan_folder() -> list:
-    """
-    Scan folder for files.
-
-    Returns:
-        List of filepaths.
-    """
+    """Scan folder for files, return list of files."""
     path = Path.cwd() / 'quiz'
     filepaths = []
     files = os.listdir(path)
@@ -20,29 +17,13 @@ def scan_folder() -> list:
 
 
 def split_text(filepath: str) -> list:
-    """
-    Open text file, split it, return list of strings.
-
-    Args:
-        filepath: filepath to use.
-
-    Returns:
-        List of strings.
-    """
+    """Open text file, split it, return list of strings."""
     with open(filepath, 'r', encoding='KOI8-R') as text_file:
         return text_file.read().split('\n\n')
 
 
 def format_questions(splitted_text: list) -> dict:
-    """
-    Get questions and answers from list, format them.
-
-    Args:
-        splitted_text: text to use.
-
-    Returns:
-        Dict containing questions and answers.
-    """
+    """Return dict with formatted questions."""
     questions_part = {}
     question = ''
     answer = ''
@@ -57,7 +38,7 @@ def format_questions(splitted_text: list) -> dict:
     return questions_part
 
 
-def main():
+def main():  # noqa: D103
     filepaths = scan_folder()
     quiz_questions = {}
 
