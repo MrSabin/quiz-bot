@@ -143,3 +143,4 @@ notes.md
 .mypy.ini
 .idea
 quiz/
+setup.cfg
