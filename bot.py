@@ -1,6 +1,6 @@
 """Module for work with python-telegram-bot."""
 from environs import Env
-from telegram import Update
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -12,7 +12,15 @@ from telegram.ext import (
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hello!')
+    custom_keyboard = [
+        ['Новый вопрос', 'Сдаться'],
+        ['Мой счет'],
+        ]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    update.effective_chat.send_message(
+        text='Привет! Я бот для викторин.',
+        reply_markup=reply_markup,
+        )
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
@@ -34,7 +42,9 @@ def main() -> None:
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
-    dispatcher.add_handler(MessageHandler(Filters.text and ~Filters.command, echo))
+    dispatcher.add_handler(
+        MessageHandler(Filters.text and ~Filters.command, echo),
+        )
     updater.start_polling()
     updater.idle()
 
