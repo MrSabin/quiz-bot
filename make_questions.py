@@ -1,5 +1,6 @@
 """Module for get questions and answers from text files."""
 
+import json
 import os
 from pathlib import Path
 
@@ -29,13 +30,20 @@ def format_questions(splitted_text: list) -> dict:
     answer = ''
 
     for phrase in splitted_text:
-        if 'Вопрос' in phrase:
+        if 'Вопрос ' in phrase:
             question = phrase.partition(':\n')[2].replace('\n', ' ')
         elif 'Ответ' in phrase:
             answer = phrase.partition(':\n')[2].replace('\n', ' ')
         questions_part[question] = answer
 
     return questions_part
+
+
+def write_json(questions) -> None:
+    """Save questions in JSON file."""
+    filepath = Path.cwd() / 'questions.json'
+    with open(filepath, 'w') as dump:
+        json.dump(questions, dump, ensure_ascii=False, indent=4)
 
 
 def main():  # noqa: D103
@@ -46,6 +54,8 @@ def main():  # noqa: D103
         splitted_text = split_text(filepath)
         questions_part = format_questions(splitted_text)
         quiz_questions.update(questions_part)
+
+    write_json(quiz_questions)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,8 @@
 """Module for work with python-telegram-bot."""
+
+import json
+import random
+
 from environs import Env
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -8,6 +12,15 @@ from telegram.ext import (
     MessageHandler,
     Updater,
 )
+
+
+def get_question(json_path='questions.json'):
+    """Get random question-answer pair from JSON."""
+    with open(json_path, 'r', encoding='utf-8') as dump:
+        questions = json.load(dump)
+        question = random.choice(list(questions.items()))   # noqa: S311
+
+    return question
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -28,9 +41,10 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Help!')
 
 
-def echo(update: Update, context: CallbackContext) -> None:
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+def new_question(update: Update, context: CallbackContext) -> None:
+    """Send new question."""
+    question, answer = get_question()
+    update.message.reply_text(question)
 
 
 def main() -> None:
@@ -43,7 +57,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(
-        MessageHandler(Filters.text and ~Filters.command, echo),
+        MessageHandler(Filters.text('Новый вопрос'), new_question),
         )
     updater.start_polling()
     updater.idle()
