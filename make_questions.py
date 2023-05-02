@@ -34,9 +34,19 @@ def format_questions(splitted_text: list) -> dict:
             question = phrase.partition(':\n')[2].replace('\n', ' ')
         elif 'Ответ' in phrase:
             answer = phrase.partition(':\n')[2].replace('\n', ' ')
-        questions_part[question] = answer
+        questions_part[question] = format_answer(answer)
 
     return questions_part
+
+
+def format_answer(answer: str) -> str:
+    """Format answer, exclude explanations."""
+    if '(' in answer:
+        formatted_answer = answer.partition('(')[0]
+    else:
+        return answer.strip(' ."')
+
+    return formatted_answer.strip(' ."')
 
 
 def write_json(questions) -> None:
