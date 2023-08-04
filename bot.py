@@ -15,13 +15,12 @@ from telegram.ext import (
 )
 
 
-def get_question(json_path='questions.json'):
-    """Get random question-answer pair from JSON."""
+def get_quiz_qna(json_path='questions.json'):
+    """Load quiz questions and answers from JSON."""
     with open(json_path, 'r', encoding='utf-8') as dump:
-        questions = json.load(dump)
-        question = random.choice(list(questions.keys()))   # noqa: S311
+        quiz_qna = json.load(dump)
 
-    return question
+    return quiz_qna
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -45,10 +44,34 @@ def help_command(update: Update, context: CallbackContext) -> None:
 def new_question(update: Update, context: CallbackContext) -> None:
     """Send new question."""
     user_id = update.effective_user.id
-    question = get_question()
+    quiz_qna = context.bot_data['quiz_qna']
+    question = random.choice(list(quiz_qna.keys()))   # noqa: S311
     database = context.bot_data['database']
     database.set(user_id, question)
     update.message.reply_text(question)
+
+
+def check_answer(update: Update, context: CallbackContext) -> None:
+    """Check user answer."""
+    user_id = update.effective_user.id
+    database = context.bot_data['database']
+    question = database.get(user_id)
+    correct_answer = context.bot_data['quiz_qna'].get(question)
+    user_answer = update.message.text
+
+    if user_answer == correct_answer:
+        update.message.reply_text('Верно!')
+    else:
+        update.message.reply_text('Неверно. Попробуйте еще раз...')
+
+
+def show_correct_answer(update: Update, context: CallbackContext) -> None:
+    """Show correct answer to user."""
+    user_id = update.effective_user.id
+    database = context.bot_data['database']
+    question = database.get(user_id)
+    correct_answer = context.bot_data['quiz_qna'].get(question)
+    update.message.reply_text(correct_answer)
 
 
 def main() -> None:     # noqa: WPS210
@@ -59,6 +82,7 @@ def main() -> None:     # noqa: WPS210
     redis_host = env.str('REDIS_HOST')
     redis_port = env.str('REDIS_PORT')
     redis_password = env.str('REDIS_PASSWORD')
+    quiz_qna = get_quiz_qna()
     database = redis.Redis(
         host=redis_host,
         port=redis_port,
@@ -69,10 +93,17 @@ def main() -> None:     # noqa: WPS210
     updater = Updater(tg_token)
     dispatcher = updater.dispatcher
     dispatcher.bot_data['database'] = database
+    dispatcher.bot_data['quiz_qna'] = quiz_qna
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(
         MessageHandler(Filters.text('Новый вопрос'), new_question),
+        )
+    dispatcher.add_handler(
+        MessageHandler(Filters.text('Сдаться'), show_correct_answer),
+        )
+    dispatcher.add_handler(
+        MessageHandler(Filters.text, check_answer),
         )
     updater.start_polling()
     updater.idle()
