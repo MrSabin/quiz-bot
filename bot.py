@@ -14,6 +14,16 @@ from telegram.ext import (
     Updater,
 )
 
+reply_keyboard = [
+    ['Новый вопрос', 'Сдаться'],
+    ['Мой счет'],
+    ]
+markup = ReplyKeyboardMarkup(
+    reply_keyboard,
+    one_time_keyboard=True,
+    resize_keyboard=True,
+    )
+
 
 def get_quiz_qna(json_path='questions.json'):
     """Load quiz questions and answers from JSON."""
@@ -25,14 +35,9 @@ def get_quiz_qna(json_path='questions.json'):
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    custom_keyboard = [
-        ['Новый вопрос', 'Сдаться'],
-        ['Мой счет'],
-        ]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
     update.effective_chat.send_message(
         text='Привет! Я бот для викторин.',
-        reply_markup=reply_markup,
+        reply_markup=markup,
         )
 
 
@@ -48,7 +53,7 @@ def new_question(update: Update, context: CallbackContext) -> None:
     question = random.choice(list(quiz_qna.keys()))   # noqa: S311
     database = context.bot_data['database']
     database.set(user_id, question)
-    update.message.reply_text(question)
+    update.message.reply_text(question, reply_markup=markup)
 
 
 def check_answer(update: Update, context: CallbackContext) -> None:
@@ -60,9 +65,11 @@ def check_answer(update: Update, context: CallbackContext) -> None:
     user_answer = update.message.text
 
     if user_answer == correct_answer:
-        update.message.reply_text('Верно!')
+        update.message.reply_text('Верно!', reply_markup=markup)
     else:
-        update.message.reply_text('Неверно. Попробуйте еще раз...')
+        update.message.reply_text(
+            'Неверно. Попробуйте еще раз...', reply_markup=markup,
+            )
 
 
 def show_correct_answer(update: Update, context: CallbackContext) -> None:
@@ -71,7 +78,7 @@ def show_correct_answer(update: Update, context: CallbackContext) -> None:
     database = context.bot_data['database']
     question = database.get(user_id)
     correct_answer = context.bot_data['quiz_qna'].get(question)
-    update.message.reply_text(correct_answer)
+    update.message.reply_text(correct_answer, reply_markup=markup)
 
 
 def main() -> None:     # noqa: WPS210
