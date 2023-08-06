@@ -24,6 +24,8 @@ markup = ReplyKeyboardMarkup(
     resize_keyboard=True,
     )
 
+NEW_QUESTION, GET_ANSWER, GIVE_UP, MY_STATS = range(4)
+
 
 def get_quiz_qna(json_path='questions.json'):
     """Load quiz questions and answers from JSON."""
@@ -33,17 +35,12 @@ def get_quiz_qna(json_path='questions.json'):
     return quiz_qna
 
 
-def start(update: Update, context: CallbackContext) -> None:
+def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
     update.effective_chat.send_message(
         text='Привет! Я бот для викторин.',
         reply_markup=markup,
         )
-
-
-def help_command(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
 
 
 def new_question(update: Update, context: CallbackContext) -> None:
@@ -102,7 +99,6 @@ def main() -> None:     # noqa: WPS210
     dispatcher.bot_data['database'] = database
     dispatcher.bot_data['quiz_qna'] = quiz_qna
     dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(CommandHandler('help', help_command))
     dispatcher.add_handler(
         MessageHandler(Filters.text('Новый вопрос'), new_question),
         )
