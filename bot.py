@@ -5,26 +5,37 @@ import random
 
 import redis
 from environs import Env
-from telegram import ReplyKeyboardMarkup, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
+    ConversationHandler,
     Filters,
     MessageHandler,
     Updater,
 )
 
-reply_keyboard = [
-    ['Новый вопрос', 'Сдаться'],
-    ['Мой счет'],
+menu_keyboard = [
+    ['Новый вопрос', 'Мой счет'],
+    ['Закончить игру'],
     ]
-markup = ReplyKeyboardMarkup(
-    reply_keyboard,
+answer_keyboard = [
+    ['Сдаться'],
+    ['Закончить игру'],
+    ]
+
+menu_markup = ReplyKeyboardMarkup(
+    menu_keyboard,
     one_time_keyboard=True,
     resize_keyboard=True,
     )
+answer_markup = ReplyKeyboardMarkup(
+    answer_keyboard,
+    one_time_keyboard=True,
+    resize_keyboard=True,
+)
 
-NEW_QUESTION, GET_ANSWER, GIVE_UP, MY_STATS = range(4)
+MENU, GET_ANSWER = range(2)
 
 
 def get_quiz_qna(json_path='questions.json'):
@@ -39,21 +50,25 @@ def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
     update.effective_chat.send_message(
         text='Привет! Я бот для викторин.',
-        reply_markup=markup,
+        reply_markup=menu_markup,
         )
 
+    return MENU
 
-def new_question(update: Update, context: CallbackContext) -> None:
+
+def new_question(update: Update, context: CallbackContext):
     """Send new question."""
     user_id = update.effective_user.id
     quiz_qna = context.bot_data['quiz_qna']
     question = random.choice(list(quiz_qna.keys()))   # noqa: S311
     database = context.bot_data['database']
     database.set(user_id, question)
-    update.message.reply_text(question, reply_markup=markup)
+    update.message.reply_text(question, reply_markup=answer_markup)
+
+    return GET_ANSWER
 
 
-def check_answer(update: Update, context: CallbackContext) -> None:
+def check_answer(update: Update, context: CallbackContext):
     """Check user answer."""
     user_id = update.effective_user.id
     database = context.bot_data['database']
@@ -62,20 +77,33 @@ def check_answer(update: Update, context: CallbackContext) -> None:
     user_answer = update.message.text
 
     if user_answer == correct_answer:
-        update.message.reply_text('Верно!', reply_markup=markup)
+        update.message.reply_text('Верно!', reply_markup=menu_markup)
+        return MENU
     else:
         update.message.reply_text(
-            'Неверно. Попробуйте еще раз...', reply_markup=markup,
+            'Неверно. Попробуйте еще раз...', reply_markup=answer_markup,
             )
+    return GET_ANSWER
 
 
-def show_correct_answer(update: Update, context: CallbackContext) -> None:
+def show_correct_answer(update: Update, context: CallbackContext):
     """Show correct answer to user."""
     user_id = update.effective_user.id
     database = context.bot_data['database']
     question = database.get(user_id)
     correct_answer = context.bot_data['quiz_qna'].get(question)
-    update.message.reply_text(correct_answer, reply_markup=markup)
+    update.message.reply_text(correct_answer, reply_markup=menu_markup)
+
+    return MENU
+
+
+def cancel(update: Update, context: CallbackContext):
+    """Cancel conversation."""
+    update.message.reply_text(
+        'До встречи!', reply_markup=ReplyKeyboardRemove(),
+        )
+
+    return ConversationHandler.END
 
 
 def main() -> None:     # noqa: WPS210
@@ -98,16 +126,23 @@ def main() -> None:     # noqa: WPS210
     dispatcher = updater.dispatcher
     dispatcher.bot_data['database'] = database
     dispatcher.bot_data['quiz_qna'] = quiz_qna
-    dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(
-        MessageHandler(Filters.text('Новый вопрос'), new_question),
-        )
-    dispatcher.add_handler(
-        MessageHandler(Filters.text('Сдаться'), show_correct_answer),
-        )
-    dispatcher.add_handler(
-        MessageHandler(Filters.text, check_answer),
-        )
+    conversation_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            MENU: [
+                MessageHandler(Filters.regex('^Новый вопрос'), new_question),
+                MessageHandler(Filters.regex('^Закончить игру'), cancel),
+                ],
+
+            GET_ANSWER: [
+                MessageHandler(Filters.regex('^Сдаться'), show_correct_answer),
+                MessageHandler(Filters.regex('^Закончить игру'), cancel),
+                MessageHandler(Filters.text, check_answer),
+                ],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    )
+    dispatcher.add_handler(conversation_handler)
     updater.start_polling()
     updater.idle()
 
