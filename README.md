@@ -1,4 +1,5 @@
 # Quiz bots for VK and Telegram
+[![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
 
 You can see how the bots is working by visiting [@dvmn-test](http://t.me/dvmn_misc_bot) for telegram and [DVMN-bot](https://vk.com/club219791098) for VK.
 
