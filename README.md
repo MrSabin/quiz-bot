@@ -24,7 +24,7 @@ Create .env file and fill it with variables as in env_example file.
 
 ## Create quiz questions from text files:
 
-Place all text files with questions and answers in `quiz/` directory inside project directory, then run
+Download [archive](https://dvmn.org/media/modules_dist/quiz-questions.zip) with questions and answers. Place all text files with questions and answers in `quiz/` directory inside project directory, then run
 ```bash
 python3 make_questions.py
 ```
