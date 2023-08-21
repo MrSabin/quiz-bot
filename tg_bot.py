@@ -5,6 +5,7 @@ import random
 
 import redis
 from environs import Env
+from pathlib import Path
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     CallbackContext,
@@ -40,7 +41,8 @@ MENU, GET_ANSWER = range(2)
 
 def get_quiz_qna(json_path='questions.json'):
     """Load quiz questions and answers from JSON."""
-    with open(json_path, 'r', encoding='utf-8') as dump:
+    path = Path.cwd() / json_path
+    with open(path, 'r', encoding='utf-8') as dump:
         quiz_qna = json.load(dump)
 
     return quiz_qna
