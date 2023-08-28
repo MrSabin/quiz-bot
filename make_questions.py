@@ -47,11 +47,8 @@ def get_questions_and_answers(splitted_text: list) -> dict:
 def format_answer(answer: str) -> str:
     """Format answer, exclude explanations."""
     if '(' in answer:
-        formatted_answer = answer.partition('(')[0]
-    else:
-        return answer.strip(' ."')
-
-    return formatted_answer.strip(' ."')
+        return answer.partition('(')[0].strip(' ."')
+    return answer.strip(' ."')
 
 
 def write_json(questions) -> None:
