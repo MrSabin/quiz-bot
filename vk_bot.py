@@ -1,23 +1,13 @@
 """Module for work with vk bot."""
 
-import json
 import random
 
 import redis
 import vk_api as vk
 from environs import Env
-from pathlib import Path
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkEventType, VkLongPoll
-
-
-def get_quiz_qna(json_path='questions.json'):
-    """Load quiz questions and answers from JSON."""
-    path = Path.cwd() / json_path
-    with open(path, 'r', encoding='utf-8') as dump:
-        quiz_qna = json.load(dump)
-
-    return quiz_qna
+from .quiz_helpers import get_quiz_qna
 
 
 def send_message(event, vk_api, messaage, keyboard):
