@@ -1,13 +1,13 @@
 """Module for get questions and answers from text files."""
 
+import argparse
 import json
 import os
 from pathlib import Path
 
 
-def get_filepaths() -> list:
+def get_filepaths(path) -> list:
     """Scan folder for files, return list of files."""
-    path = Path.cwd() / 'quiz'
     filepaths = []
     files = os.listdir(path)
 
@@ -62,7 +62,13 @@ def write_json(questions) -> None:
 
 
 def main():  # noqa: D103
-    filepaths = get_filepaths()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--path", default=Path.cwd() / 'quiz', help="Path to text file"
+    )
+    args = parser.parse_args()
+
+    filepaths = get_filepaths(args.path)
     quiz_questions = {}
 
     for filepath in filepaths:
