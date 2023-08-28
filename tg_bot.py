@@ -16,22 +16,22 @@ from telegram.ext import (
     Updater,
 )
 
-menu_keyboard = [
+MENU_KEYBOARD = [
     ['Новый вопрос', 'Мой счет'],
     ['Закончить игру'],
     ]
-answer_keyboard = [
+ANSWER_KEYBOARD = [
     ['Сдаться'],
     ['Закончить игру'],
     ]
 
-menu_markup = ReplyKeyboardMarkup(
-    menu_keyboard,
+MENU_MARKUP = ReplyKeyboardMarkup(
+    MENU_KEYBOARD,
     one_time_keyboard=True,
     resize_keyboard=True,
     )
-answer_markup = ReplyKeyboardMarkup(
-    answer_keyboard,
+ANSWER_MARKUP = ReplyKeyboardMarkup(
+    ANSWER_KEYBOARD,
     one_time_keyboard=True,
     resize_keyboard=True,
 )
@@ -52,7 +52,7 @@ def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
     update.effective_chat.send_message(
         text='Привет! Я бот для викторин.',
-        reply_markup=menu_markup,
+        reply_markup=MENU_MARKUP,
         )
 
     return MENU
@@ -65,7 +65,7 @@ def new_question(update: Update, context: CallbackContext):
     question = random.choice(list(quiz_qna.keys()))   # noqa: S311
     database = context.bot_data['database']
     database.set(user_id, question)
-    update.message.reply_text(question, reply_markup=answer_markup)
+    update.message.reply_text(question, reply_markup=ANSWER_MARKUP)
 
     return GET_ANSWER
 
@@ -79,11 +79,11 @@ def check_answer(update: Update, context: CallbackContext):
     user_answer = update.message.text
 
     if user_answer == correct_answer:
-        update.message.reply_text('Верно!', reply_markup=menu_markup)
+        update.message.reply_text('Верно!', reply_markup=MENU_MARKUP)
         return MENU
     else:
         update.message.reply_text(
-            'Неверно. Попробуйте еще раз...', reply_markup=answer_markup,
+            'Неверно. Попробуйте еще раз...', reply_markup=ANSWER_MARKUP,
             )
     return GET_ANSWER
 
@@ -94,7 +94,7 @@ def show_correct_answer(update: Update, context: CallbackContext):
     database = context.bot_data['database']
     question = database.get(user_id)
     correct_answer = context.bot_data['quiz_qna'].get(question)
-    update.message.reply_text(correct_answer, reply_markup=menu_markup)
+    update.message.reply_text(correct_answer, reply_markup=MENU_MARKUP)
 
     return MENU
 
