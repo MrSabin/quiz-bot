@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 
-def scan_folder() -> list:
+def get_filepaths() -> list:
     """Scan folder for files, return list of files."""
     path = Path.cwd() / 'quiz'
     filepaths = []
@@ -17,13 +17,18 @@ def scan_folder() -> list:
     return filepaths
 
 
-def split_text(filepath: str) -> list:
-    """Open text file, split it, return list of strings."""
+def open_file(filepath: str):
+    """Open text file."""
     with open(filepath, 'r', encoding='KOI8-R') as text_file:
-        return text_file.read().split('\n\n')
+        return text_file.read()
 
 
-def format_questions(splitted_text: list) -> dict:
+def split_text(text) -> list:
+    """Split text, return list of strings."""
+    return text.split('\n\n')
+
+
+def get_questions_and_answers(splitted_text: list) -> dict:
     """Return dict with formatted questions."""
     questions_part = {}
     question = ''
@@ -57,12 +62,13 @@ def write_json(questions) -> None:
 
 
 def main():  # noqa: D103
-    filepaths = scan_folder()
+    filepaths = get_filepaths()
     quiz_questions = {}
 
     for filepath in filepaths:
-        splitted_text = split_text(filepath)
-        questions_part = format_questions(splitted_text)
+        raw_text = open_file(filepath)
+        splitted_text = split_text(raw_text)
+        questions_part = get_questions_and_answers(splitted_text)
         quiz_questions.update(questions_part)
 
     write_json(quiz_questions)
