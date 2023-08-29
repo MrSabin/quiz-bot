@@ -23,13 +23,9 @@ def open_file(filepath: str):
         return text_file.read()
 
 
-def split_text(text) -> list:
-    """Split text, return list of strings."""
-    return text.split('\n\n')
-
-
-def get_questions_and_answers(splitted_text: list) -> dict:
+def get_questions_and_answers(raw_text) -> dict:
     """Return dict with formatted questions."""
+    splitted_text = raw_text.split('\n\n')
     questions_part = {}
     question = ''
     answer = ''
@@ -70,8 +66,7 @@ def main():  # noqa: D103
 
     for filepath in filepaths:
         raw_text = open_file(filepath)
-        splitted_text = split_text(raw_text)
-        questions_part = get_questions_and_answers(splitted_text)
+        questions_part = get_questions_and_answers(raw_text)
         quiz_questions.update(questions_part)
 
     write_json(quiz_questions)
